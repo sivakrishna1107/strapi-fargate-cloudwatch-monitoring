@@ -1,9 +1,9 @@
-resource "aws_ecs_cluster" "sejal_cluster_siva" {
-  name = "sejal-fargate-cluster-siva"
+resource "aws_ecs_cluster" "cluster_siva" {
+  name = "fargate-cluster-siva"
 }
 
-resource "aws_ecs_task_definition" "sejal_task_siva" {
-  family                   = "sejal-fargate-task-siva"
+resource "aws_ecs_task_definition" "task_siva" {
+  family                   = "fargate-task-siva"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "256"
@@ -14,7 +14,7 @@ resource "aws_ecs_task_definition" "sejal_task_siva" {
 
   container_definitions = jsonencode([
     {
-      name      = "sejal-container-siva"
+      name      = "container-siva"
       image     = var.image_url
       essential = true
 
@@ -32,7 +32,7 @@ resource "aws_ecs_task_definition" "sejal_task_siva" {
       }
 
       environment = [
-        { name = "DATABASE_HOST", value = aws_db_instance.sejal_db_siva.address },
+        { name = "DATABASE_HOST", value = aws_db_instance.db_siva.address },
         { name = "DATABASE_USERNAME", value = var.db_username },
         { name = "DATABASE_PASSWORD", value = var.db_password },
         { name = "DATABASE_PORT", value = "5432" },
@@ -44,10 +44,10 @@ resource "aws_ecs_task_definition" "sejal_task_siva" {
   ])
 }
 
-resource "aws_ecs_service" "sejal_service_siva" {
-  name            = "sejal-service-siva"
-  cluster         = aws_ecs_cluster.sejal_cluster_siva.id
-  task_definition = aws_ecs_task_definition.sejal_task_siva.arn
+resource "aws_ecs_service" "service_siva" {
+  name            = "service-siva"
+  cluster         = aws_ecs_cluster.cluster_siva.id
+  task_definition = aws_ecs_task_definition.task_siva.arn
   launch_type     = "FARGATE"
   desired_count   = 1
 

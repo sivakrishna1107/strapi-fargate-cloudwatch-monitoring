@@ -1,10 +1,10 @@
-name: Terraform CD - Siva
+name: Terraform CD
 
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: "Choose apply or destroy"
+        description: "Choose Terraform action"
         required: true
         default: "apply"
         type: choice
@@ -16,6 +16,10 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: terraform
+
     env:
       AWS_REGION: ap-south-1
       TF_VAR_image_url: ${{ secrets.ECR_IMAGE_URL }}
@@ -24,33 +28,33 @@ jobs:
       TF_VAR_execution_role_arn: ${{ secrets.EXECUTION_ROLE_ARN }}
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: |
-          cd terraform
-          terraform init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
 
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply'
-        run: |
-          cd terraform
-          terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
 
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
-        run: |
-          cd terraform
-          terraform destroy -auto-approve
+        run: terraform destroy -auto-approve
 

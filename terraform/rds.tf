@@ -1,10 +1,10 @@
 resource "aws_db_subnet_group" "db_subnet_group_siva" {
-  name       = "sejal-db-subnet-group-siva"
+  name       = "db-subnet-group-siva"
   subnet_ids = data.aws_subnets.default.ids
 }
 
-resource "aws_db_instance" "sejal_db_siva" {
-  identifier             = "sejal-db-siva"
+resource "aws_db_instance" "db_siva" {
+  identifier             = "db-siva"
   engine                 = "postgres"
   instance_class         = "db.t3.micro"
   allocated_storage      = 20
