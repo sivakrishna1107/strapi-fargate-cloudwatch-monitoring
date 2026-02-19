@@ -3,37 +3,41 @@ provider "aws" {
 }
 
 ############################
-# VPC
+# Use Existing Default VPC
 ############################
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+data "aws_vpc" "default" {
+  default = true
 }
 
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
-}
+############################
+# Security Group
+############################
 
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.main.id
-}
+resource "aws_security_group" "strapi_sg" {
+  name_prefix = "strapi-sg-"
+  vpc_id      = data.aws_vpc.default.id
 
-resource "aws_route" "default_route" {
-  route_table_id         = aws_route_table.public_rt.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-}
+  ingress {
+    from_port   = 1337
+    to_port     = 1337
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public_rt.id
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 ############################
@@ -55,6 +59,7 @@ resource "aws_ecs_task_definition" "strapi" {
   cpu                      = "512"
   memory                   = "1024"
 
+  # Use existing IAM role
   execution_role_arn = "arn:aws:iam::615793974749:role/ecsTaskExecutionRole"
 
   container_definitions = jsonencode([
@@ -86,10 +91,8 @@ resource "aws_ecs_service" "strapi" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = [aws_subnet.public.id]
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
     security_groups  = [aws_security_group.strapi_sg.id]
   }
-
-  depends_on = [aws_internet_gateway.igw]
 }
