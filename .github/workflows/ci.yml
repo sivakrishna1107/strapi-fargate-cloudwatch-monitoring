@@ -33,16 +33,8 @@ jobs:
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      - name: Build Docker Image
+      - name: Build & Push
         run: |
-          docker build -t $IMAGE_NAME:latest .
-
-      - name: Tag Image
-        run: |
-          docker tag $IMAGE_NAME:latest \
-          ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_NAME:latest
-
-      - name: push Image to ECR
-        run: |
-          docker push \
-          ${{ secrets.AWS_ACCOUNT_ID }}.DKR.ECR.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_NAME:latest
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/strapi-task8-siva:latest
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
