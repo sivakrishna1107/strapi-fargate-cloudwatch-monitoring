@@ -4,7 +4,7 @@
 
 resource "aws_security_group" "strapi_sg" {
   name_prefix = "strapi-sg-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 1337
