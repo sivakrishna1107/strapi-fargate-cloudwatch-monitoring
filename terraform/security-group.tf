@@ -1,5 +1,5 @@
-resource "aws_security_group" "ecs_sg" {
-  name   = "sejal-ecs-sg"
+resource "aws_security_group" "ecs_sg_siva" {
+  name   = "sejal-ecs-sg-siva"
   vpc_id = data.aws_vpc.default.id
 
   ingress {
