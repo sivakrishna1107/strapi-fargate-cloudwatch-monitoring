@@ -1,0 +1,44 @@
+name: Terraform CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Apply or Destroy"
+        required: true
+        default: "apply"
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+
+      - run: terraform init
+
+      - run: terraform plan -var="image_url=${{ secrets.ECR_IMAGE_URL }}"
+
+      - if: github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve -var="image_url=${{ secrets.ECR_IMAGE_URL }}"
+
+      - if: github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve -var="image_url=${{ secrets.ECR_IMAGE_URL }}"
+
