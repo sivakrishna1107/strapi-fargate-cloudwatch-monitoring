@@ -1,60 +1,44 @@
-resource "aws_ecs_cluster" "cluster_siva" {
-  name = "fargate-cluster-siva"
+resource "aws_ecs_cluster" "main" {
+  name = "strapi-cluster"
 }
 
-resource "aws_ecs_task_definition" "task_siva" {
-  family                   = "fargate-task-siva"
+
+resource "aws_ecs_task_definition" "strapi" {
+  family                   = "strapi-task"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = "256"
-  memory                   = "512"
-
-  execution_role_arn = var.execution_role_arn
-  task_role_arn      = var.execution_role_arn
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = "arn:aws:iam::615793974749:role/ecsTaskExecutionRole"
 
   container_definitions = jsonencode([
     {
-      name      = "container-siva"
-      image     = var.image_url
+      name  = "strapi"
+      image = "${aws_ecr_repository.strapi.repository_url}:latest"
       essential = true
 
-      portMappings = [{
-        containerPort = 1337
-      }]
-
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.strapi_logs_siva.name
-          awslogs-region        = var.region
-          awslogs-stream-prefix = "ecs"
+      portMappings = [
+        {
+          containerPort = 1337
+          protocol      = "tcp"
         }
-      }
-
-      environment = [
-        { name = "DATABASE_HOST", value = aws_db_instance.db_siva.address },
-        { name = "DATABASE_USERNAME", value = var.db_username },
-        { name = "DATABASE_PASSWORD", value = var.db_password },
-        { name = "DATABASE_PORT", value = "5432" },
-        { name = "NODE_ENV", value = "production" },
-        { name = "HOST", value = "0.0.0.0" },
-        { name = "PORT", value = "1337" }
       ]
     }
   ])
 }
 
-resource "aws_ecs_service" "service_siva" {
-  name            = "service-siva"
-  cluster         = aws_ecs_cluster.cluster_siva.id
-  task_definition = aws_ecs_task_definition.task_siva.arn
+
+resource "aws_ecs_service" "strapi" {
+  name            = "strapi-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.strapi.arn
   launch_type     = "FARGATE"
   desired_count   = 1
 
   network_configuration {
-    subnets          = data.aws_subnets.default.ids
-    security_groups  = [aws_security_group.ecs_sg_siva.id]
+    subnets          = var.public_subnets
     assign_public_ip = true
+    security_groups  = [aws_security_group.strapi_sg.id]
   }
 }
 

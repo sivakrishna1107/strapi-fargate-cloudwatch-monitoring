@@ -1,6 +1,6 @@
-resource "aws_security_group" "ecs_sg_siva" {
-  name   = "ecs-sg-siva"
-  vpc_id = data.aws_vpc.default.id
+resource "aws_security_group" "strapi_sg" {
+  name        = "strapi-sg"
+  description = "Allow HTTP"
 
   ingress {
     from_port   = 1337
