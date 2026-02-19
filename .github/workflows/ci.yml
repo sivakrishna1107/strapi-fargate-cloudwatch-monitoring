@@ -35,7 +35,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t $IMAGE_NAME .
+          docker build -t $IMAGE_NAME:latest .
 
       - name: Tag Image
         run: |
