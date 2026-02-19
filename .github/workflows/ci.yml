@@ -33,6 +33,11 @@ jobs:
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
+      - name: Create ECR Repository if not exists
+        run: |
+          aws ecr describe-repositories --repository-names strapi-task8-siva \
+          || aws ecr create-repository --repository-name strapi-task8-siva
+
       - name: Build & Push
         run: |
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/strapi-task8-siva:latest
