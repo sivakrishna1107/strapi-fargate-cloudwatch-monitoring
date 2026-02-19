@@ -29,7 +29,7 @@ jobs:
 
       - name: Login to ECR
         run: |
-          aws ecr grt-login-password --region ${{ secrets.AWS_REGION }} \
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin \
           ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
