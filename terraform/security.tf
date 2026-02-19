@@ -1,6 +1,8 @@
+# Security Group
 resource "aws_security_group" "strapi_sg" {
   name        = "strapi-sg"
-  description = "Allow HTTP"
+  description = "Allow Strapi HTTP"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 1337
@@ -16,4 +18,3 @@ resource "aws_security_group" "strapi_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
-
