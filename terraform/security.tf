@@ -1,6 +1,14 @@
+# Get Subnets from Default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
 # Security Group
 resource "aws_security_group" "strapi_sg_siva" {
-  name        = "strapi-sg_siva"
+  name        = "strapi-sg"
   description = "Allow Strapi HTTP"
   vpc_id      = data.aws_vpc.default.id
 
