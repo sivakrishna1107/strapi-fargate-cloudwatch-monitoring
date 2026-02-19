@@ -2,9 +2,10 @@ name: Build and push strapi image
 
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  #push:
+  #branches:
+  #- main
 
 env:
   IMAGE_NAME: strapi-task8-siva
