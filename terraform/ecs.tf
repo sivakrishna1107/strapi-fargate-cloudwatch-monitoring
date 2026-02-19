@@ -7,15 +7,6 @@ data "aws_vpc" "default" {
   default = true
 }
 
-# Get Subnets in Default VPC
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-
 # ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "strapi-cluster"
@@ -57,13 +48,8 @@ resource "aws_ecs_service" "strapi" {
   desired_count   = 1
 
   network_configuration {
-    subnets = [
-      "subnet-0abc123",
-      "subnet-0def456"
-    ]
-
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
     security_groups  = [aws_security_group.strapi_sg_siva.id]
   }
 }
-
