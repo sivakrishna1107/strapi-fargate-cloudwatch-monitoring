@@ -4,11 +4,10 @@ resource "aws_ecs_service" "strapi" {
   task_definition = aws_ecs_task_definition.strapi.arn
   launch_type     = "FARGATE"
   desired_count   = 1
-  force_new_deployment = true
 
   network_configuration {
-    subnets         = data.aws_subnets.default.ids
-    security_groups = [aws_security_group.ecs_sg.id]
+    subnets          = data.aws_subnets.default.ids
+    security_groups  = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
 
@@ -17,6 +16,4 @@ resource "aws_ecs_service" "strapi" {
     container_name   = "strapi"
     container_port   = 1337
   }
-
-  depends_on = [aws_lb_listener.listener]
 }
