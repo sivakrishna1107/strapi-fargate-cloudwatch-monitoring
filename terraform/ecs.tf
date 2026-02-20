@@ -4,11 +4,12 @@ resource "aws_ecs_service" "strapi" {
   task_definition = aws_ecs_task_definition.strapi.arn
   launch_type     = "FARGATE"
   desired_count   = 1
+  force_new_deployment = true
 
   network_configuration {
-    subnets         = [aws_subnet.private_1.id, aws_subnet.private_2.id]
+    subnets         = data.aws_subnets.default.ids
     security_groups = [aws_security_group.ecs_sg.id]
-    assign_public_ip = false
+    assign_public_ip = true
   }
 
   load_balancer {
