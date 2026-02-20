@@ -1,6 +1,6 @@
-#########################################
-# 🔥 DEFAULT VPC DATA (REQUIRED)
-#########################################
+################################################
+# DEFAULT VPC
+################################################
 
 data "aws_vpc" "default" {
   default = true
@@ -13,9 +13,9 @@ data "aws_subnets" "default" {
   }
 }
 
-#########################################
-# ALB
-#########################################
+################################################
+# APPLICATION LOAD BALANCER
+################################################
 
 resource "aws_lb" "alb" {
   name               = "strapi-alb"
@@ -24,9 +24,9 @@ resource "aws_lb" "alb" {
   security_groups    = [aws_security_group.alb_sg.id]
 }
 
-#########################################
+################################################
 # TARGET GROUP
-#########################################
+################################################
 
 resource "aws_lb_target_group" "tg" {
   name        = "strapi-tg"
@@ -34,23 +34,11 @@ resource "aws_lb_target_group" "tg" {
   protocol    = "HTTP"
   target_type = "ip"
   vpc_id      = data.aws_vpc.default.id
-
-  health_check {
-    path     = "/"
-    protocol = "HTTP"
-  }
 }
 
-#########################################
+################################################
 # LISTENER
-#########################################
-
-resource "aws_lb" "alb" {
-  name               = "strapi-alb"
-  load_balancer_type = "application"
-  subnets            = data.aws_subnets.default.ids
-  security_groups    = [aws_security_group.alb_sg.id]
-}
+################################################
 
 resource "aws_lb_listener" "listener" {
   load_balancer_arn = aws_lb.alb.arn
