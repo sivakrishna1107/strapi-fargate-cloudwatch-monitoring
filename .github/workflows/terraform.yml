@@ -1,29 +1,47 @@
-name: Terraform Deploy (Manual)
+name: CI-CD Strapi ECS Fargate
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: strapi
+  ACCOUNT_ID: 811738710312
+  IMAGE_TAG: latest
 
 jobs:
-  terraform:
+  deploy:
+    name: Build Push Deploy
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init & Apply
-        run: |
-          cd terraform
-          terraform init
-          terraform destroy --auto-approve
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
