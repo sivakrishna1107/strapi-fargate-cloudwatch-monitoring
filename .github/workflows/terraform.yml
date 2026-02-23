@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./  # Root dir with .tf files
+        working-directory: /terraform # Root dir with .tf files
     
     steps:
     - uses: actions/checkout@v4
