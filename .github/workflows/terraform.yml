@@ -1,47 +1,37 @@
-name: CI-CD Strapi ECS Fargate
-
+name: Deploy Strapi Fargate
 on:
   push:
-    branches:
-      - main
-
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: strapi
-  ACCOUNT_ID: 811738710312
-  IMAGE_TAG: latest
+    branches: [main]
 
 jobs:
   deploy:
-    name: Build Push Deploy
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      - name: Terraform Init
-        working-directory: terraform
-        run: terraform init
-
-      - name: Terraform Validate
-        working-directory: terraform
-        run: terraform validate
-
-      - name: Terraform Plan
-        working-directory: terraform
-        run: terraform plan
-
-      - name: Terraform Apply
-        working-directory: terraform
-        run: terraform apply -auto-approve
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    - name: Terraform Setup
+      uses: hashicorp/setup-terraform@v3
+      
+    - name: Terraform Init
+      run: terraform init
+      
+    - name: Terraform Plan
+      env:
+        ECR_REPO_URL: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: terraform plan -var="ecr_repo_url=$ECR_REPO_URL" -var="database_url=$DATABASE_URL" -var="jwt_secret=$JWT_SECRET"
+      
+    - name: Terraform Apply
+      env:
+        ECR_REPO_URL: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      run: terraform apply -auto-approve -var="ecr_repo_url=$ECR_REPO_URL" -var="database_url=$DATABASE_URL" -var="jwt_secret=$JWT_SECRET"
