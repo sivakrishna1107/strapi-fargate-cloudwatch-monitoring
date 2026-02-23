@@ -99,7 +99,7 @@ resource "aws_ecs_service" "main" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = data.aws_subnets.default_public.ids
+    subnets         = data.aws_subnets.public.ids
     assign_public_ip = true  # Enable for default VPC public subnets to get public IP
   }
 
