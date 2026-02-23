@@ -1,37 +1,48 @@
-name: Deploy Strapi Fargate
+name: Deploy Strapi
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./  # Root dir with .tf files
+    
     steps:
     - uses: actions/checkout@v4
     
-    - name: Configure AWS credentials
+    - name: Configure AWS
       uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
-    
+        
+    - name: ECR Login
+      uses: aws-actions/amazon-ecr-login@v2
+
     - name: Terraform Setup
       uses: hashicorp/setup-terraform@v3
-      
+      with:
+        terraform_version: 1.6.0
+        
     - name: Terraform Init
       run: terraform init
       
     - name: Terraform Plan
       env:
-        ECR_REPO_URL: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      run: terraform plan -var="ecr_repo_url=$ECR_REPO_URL" -var="database_url=$DATABASE_URL" -var="jwt_secret=$JWT_SECRET"
+        TF_VAR_ecr_repo_url: public.ecr.aws/nginx/nginx:1.21  # Test
+        TF_VAR_database_url: sqlite://data.db
+        TF_VAR_jwt_secret: test-secret
+      run: terraform plan
       
     - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
       env:
-        ECR_REPO_URL: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      run: terraform apply -auto-approve -var="ecr_repo_url=$ECR_REPO_URL" -var="database_url=$DATABASE_URL" -var="jwt_secret=$JWT_SECRET"
+        TF_VAR_ecr_repo_url: public.ecr.aws/nginx/nginx:1.21
+        TF_VAR_database_url: ${{ secrets.DATABASE_URL }}
+        TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      run: terraform apply -auto-approve
