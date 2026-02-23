@@ -17,7 +17,7 @@ data "aws_subnets" "public" {
   }
 }
 
-# ECS Cluster (no IAM needed)
+# ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = "my-fargate-cluster"
   setting {
@@ -26,37 +26,29 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
-# ECS Task Definition - NO execution_role_arn (failsafe)
+# ECS Task Definition - NO LOGS, PUBLIC IMAGE ONLY
 resource "aws_ecs_task_definition" "app" {
   family                   = "my-app-task"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
-  # Removed execution_role_arn - uses account default
+  # NO execution_role_arn - Fargate uses account default
+  # NO awslogs - avoids role requirement
 
   container_definitions = jsonencode([
     {
       name  = "my-app"
-      image = "amazon/amazon-ecs-sample"  # Public test image (replace later)
+      image = "amazon/amazon-ecs-sample"  # ✅ Public image, no ECR/pull needed
+      essential = true
       portMappings = [{
         containerPort = 80
         protocol      = "tcp"
       }]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = "/ecs/my-app"
-          awslogs-region        = "us-east-1"
-          awslogs-stream-prefix = "ecs"
-        }
-      }
+      # NO logConfiguration - uses ECS platform logs
     }
   ])
 }
-
-# NO CloudWatch log group - uses ECS default
-# NO IAM role creation
 
 # ECS Service
 resource "aws_ecs_service" "main" {
